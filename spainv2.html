@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hiszpański A1/A2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://www.tabletowo.pl/wp-content/uploads/2022/08/duolingo-grafika.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #word {
+            font-size: 24px;
+            color: #333;
+        }
+
+        #translation {
+            padding: 5px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        #message {
+            color: #900;
+        }
+
+        .word-background {
+            background-color: #f0f0f0;
+        }
+
+        #results-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .special-characters {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .special-characters button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .special-characters button:hover {
+            background-color: #555;
+        }
+
+        select {
+            padding: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Hiszpański A1/A2</h1>
+        <p>Wybierz kategorię:</p>
+        <select id="categorySelect" onchange="selectCategory()">
+            <option value="przedmioty">Przedmioty</option>
+            <option value="czasowniki">Czasowniki</option>
+            <option value="zdania">Zdania</option>
+        </select>
+        <p>Przetłumacz słowo z polskiego na hiszpański:</p>
+        <div id="word">Dom</div>
+        <input type="text" id="translation" placeholder="Wpisz tłumaczenie" onkeypress="checkEnter(event)">
+        <button onclick="checkTranslation()">Sprawdź</button>
+        <p id="message"></p>
+
+        <div class="special-characters">
+            <button onclick="addSpecialCharacter('á')">á</button>
+            <button onclick="addSpecialCharacter('é')">é</button>
+            <button onclick="addSpecialCharacter('í')">í</button>
+            <button onclick="addSpecialCharacter('ó')">ó</button>
+            <button onclick="addSpecialCharacter('ú')">ú</button>
+            <button onclick="addSpecialCharacter('ñ')">ñ</button>
+	    <button onclick="addSpecialCharacter('¿')">¿</button>
+        </div>
+
+        <div id="results-modal">
+            <div class="modal-content">
+                <h2>Dziękujemy za grę!</h2>
+                <p id="results-message"></p>
+                <button onclick="resetGame()">Tak, zagram jeszcze raz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            przedmioty: [
+    { polish: "masło", spanish: "mantequilla" },
+    { polish: "książka", spanish: "libro" },
+    { polish: "krzesło", spanish: "silla" },
+    { polish: "samochód", spanish: "coche" },
+    { polish: "stół", spanish: "mesa" },
+    { polish: "pies", spanish: "perro" },
+    { polish: "kot", spanish: "gato" },
+    { polish: "drzwi", spanish: "puerta" },
+    { polish: "okno", spanish: "ventana" },
+    { polish: "telefon", spanish: "teléfono" },
+    { polish: "telewizor", spanish: "televisión" },
+    { polish: "szklanka", spanish: "vaso" },
+    { polish: "butelka", spanish: "botella" },
+    { polish: "zegar", spanish: "reloj" },
+    { polish: "długopis", spanish: "bolígrafo" },
+    { polish: "komputer", spanish: "computadora" },
+    { polish: "papier", spanish: "papel" },
+    { polish: "ołówek", spanish: "lápiz" },
+    { polish: "kwiat", spanish: "flor" },
+    { polish: "klucz", spanish: "llave" },
+    { polish: "ubranie", spanish: "ropa" },
+    { polish: "kapelusz", spanish: "sombrero" },
+    { polish: "gitara", spanish: "guitarra" },
+    { polish: "zabawka", spanish: "juguete" },
+    { polish: "but", spanish: "zapato" },
+    { polish: "drzewo", spanish: "árbol" },
+    { polish: "chleb", spanish: "pan" },
+    { polish: "mleko", spanish: "leche" },
+    { polish: "ser", spanish: "queso" },
+    { polish: "jajko", spanish: "huevo" },
+    { polish: "ryż", spanish: "arroz" },
+    { polish: "woda", spanish: "agua" },
+    { polish: "mięso", spanish: "carne" },
+    { polish: "ryba", spanish: "pescado" },
+    { polish: "kurczak", spanish: "pollo" },
+    { polish: "pomidor", spanish: "tomate" },
+    { polish: "ziemniak", spanish: "patata" },
+    { polish: "cebula", spanish: "cebolla" },
+    { polish: "marchewka", spanish: "zanahoria" },
+    { polish: "sałatka", spanish: "ensalada" },
+    { polish: "owoc", spanish: "fruta" },
+    { polish: "jogurt", spanish: "yogur" },
+    { polish: "deser", spanish: "postre" },
+    { polish: "ciasto", spanish: "pastel" },
+    { polish: "lody", spanish: "helado" },
+    { polish: "czekolada", spanish: "chocolate" },
+    { polish: "herbata", spanish: "té" },
+    { polish: "kawa", spanish: "café" },
+    { polish: "zupa", spanish: "sopa" },
+    { polish: "bułka", spanish: "panecillo" },
+    { polish: "ser starty", spanish: "queso rallado" },
+    { polish: "szynka", spanish: "jamón" },
+    { polish: "masło", spanish: "mantequilla" },
+    { polish: "olej", spanish: "aceite" },
+    { polish: "ocet", spanish: "vinagre" },
+    { polish: "sól", spanish: "sal" },
+    { polish: "cukier", spanish: "azúcar" },
+    { polish: "miód", spanish: "miel" },
+    { polish: "herbatnik", spanish: "galleta" },
+    { polish: "makaron", spanish: "pasta" },
+    { polish: "brązowy ryż", spanish: "arroz integral" },
+    { polish: "płatki", spanish: "cereal" },
+    { polish: "tuńczyk", spanish: "atún" },
+    { polish: "napój", spanish: "refresco" },
+    { polish: "woda mineralna", spanish: "agua mineral" },
+    { polish: "sok", spanish: "zumo" },
+    { polish: "piwo", spanish: "cerveza" },
+    { polish: "wino", spanish: "vino" },
+    { polish: "napój", spanish: "bebida" },
+    { polish: "łazienka", spanish: "baño" },
+    { polish: "kuchnia", spanish: "cocina" },
+    { polish: "sypialnia", spanish: "dormitorio" },
+    { polish: "salon", spanish: "sala de estar" },
+    { polish: "ogród", spanish: "jardín" },
+    { polish: "garaż", spanish: "garaje" },
+    { polish: "basen", spanish: "piscina" },
+    { polish: "biuro", spanish: "oficina" },
+    { polish: "rynek", spanish: "mercado" },
+    { polish: "bank", spanish: "banco" },
+    { polish: "apteka", spanish: "farmacia" },
+    { polish: "szkoła", spanish: "escuela" },
+    { polish: "szpital", spanish: "hospital" },
+    { polish: "kościół", spanish: "iglesia" },
+    { polish: "park", spanish: "parque" },
+    { polish: "kino", spanish: "cine" },
+    { polish: "restauracja", spanish: "restaurante" },
+    { polish: "sklep", spanish: "tienda" },
+    { polish: "stacja benzynowa", spanish: "gasolinera" },
+    { polish: "lotnisko", spanish: "aeropuerto" },
+    { polish: "autokar", spanish: "autobús" },
+    { polish: "pociąg", spanish: "tren" },
+    { polish: "metro", spanish: "metro" },
+    { polish: "taksówka", spanish: "taxi" },
+    { polish: "samolot", spanish: "avión" },
+    { polish: "statek", spanish: "barco" },
+    { polish: "rower", spanish: "bicicleta" },
+    { polish: "policyjny samochód", spanish: "coche de policía" },
+    { polish: "karetka", spanish: "ambulancia" },
+    { polish: "strażak", spanish: "bombero" },
+    { polish: "śmieci", spanish: "basura" },
+    { polish: "pieniądze", spanish: "dinero" },
+    { polish: "karta kredytowa", spanish: "tarjeta de crédito" },
+    { polish: "bilet", spanish: "billete" },
+    { polish: "moneta", spanish: "moneda" },
+    { polish: "paszport", spanish: "pasaporte" },
+    { polish: "bagaż", spanish: "equipaje" },
+    { polish: "walizka", spanish: "maleta" },
+    { polish: "plecak", spanish: "mochila" },
+            ],
+            czasowniki: [
+    { polish: "kupować", spanish: "comprar" },
+    { polish: "jeść", spanish: "comer" },
+    { polish: "pić", spanish: "beber" },
+    { polish: "gotować", spanish: "cocinar" },
+    { polish: "myć", spanish: "lavar" },
+    { polish: "myć zęby", spanish: "cepillar los dientes" },
+    { polish: "prać", spanish: "lavar la ropa" },
+    { polish: "grać", spanish: "jugar" },
+    { polish: "czytać", spanish: "leer" },
+    { polish: "pisać", spanish: "escribir" },
+    { polish: "mówić", spanish: "hablar" },
+    { polish: "słuchać", spanish: "escuchar" },
+    { polish: "rozumieć", spanish: "entender" },
+    { polish: "widzieć", spanish: "ver" },
+    { polish: "słyszeć", spanish: "oír" },
+    { polish: "spać", spanish: "dormir" },
+    { polish: "budzić się", spanish: "despertarse" },
+    { polish: "wstawać", spanish: "levantarse" },
+    { polish: "chodzić", spanish: "caminar" },
+    { polish: "biegać", spanish: "correr" },
+    { polish: "skakać", spanish: "saltar" },
+    { polish: "tańczyć", spanish: "bailar" },
+    { polish: "śpiewać", spanish: "cantar" },
+    { polish: "grać na instrumencie", spanish: "tocar un instrumento" },
+    { polish: "malować", spanish: "pintar" },
+    { polish: "rybać", spanish: "pescar" },
+    { polish: "jeździć na rowerze", spanish: "montar en bicicleta" },
+    { polish: "jeździć na nartach", spanish: "esquiar" },
+    { polish: "pływać", spanish: "nadar" },
+    { polish: "chodzić na zakupy", spanish: "ir de compras" },
+    { polish: "jeździć samochodem", spanish: "conducir un coche" },
+    { polish: "latać samolotem", spanish: "volar en avión" },
+    { polish: "nosić", spanish: "llevar" },
+    { polish: "pracować", spanish: "trabajar" },
+    { polish: "uczyć się", spanish: "aprender" },
+    { polish: "nauczać", spanish: "enseñar" },
+    { polish: "sprzątać", spanish: "limpiar" },
+    { polish: "opuszczać", spanish: "abandonar" },
+    { polish: "wracać", spanish: "volver" },
+    { polish: "wchodzić", spanish: "entrar" },
+    { polish: "wychodzić", spanish: "salir" },
+    { polish: "siedzieć", spanish: "sentarse" },
+    { polish: "stać", spanish: "estar de pie" },
+    { polish: "leżeć", spanish: "estar acostado" },
+    { polish: "rozpakowywać", spanish: "desempaquetar" },
+    { polish: "pakować", spanish: "empaquetar" },
+    { polish: "rozglądać się", spanish: "mirar alrededor" },
+    { polish: "wsłuchiwać się", spanish: "escuchar atentamente" },
+    { polish: "zwiedzać", spanish: "visitar" },
+            ],
+            zdania: [
+    { polish: "Mój pies jest duży", spanish: "Mi perro es grande" },
+    { polish: "Lubię kawę", spanish: "Me gusta el café" },
+    { polish: "Jem obiad", spanish: "Como la comida" },
+    { polish: "Ona jest młoda", spanish: "Ella es joven" },
+    { polish: "Lubisz muzykę?", spanish: "¿Te gusta la música?" },
+    { polish: "To jest mój dom", spanish: "Esta es mi casa" },
+    { polish: "Oni są przyjaciele", spanish: "Ellos son amigos" },
+    { polish: "Czy masz czas?", spanish: "¿Tienes tiempo?" },
+    { polish: "Ona jest w szkole", spanish: "Ella está en la escuela" },
+    { polish: "Lubię czytać książki", spanish: "Me gusta leer libros" },
+    { polish: "Jestem głodny", spanish: "Tengo hambre" },
+    { polish: "Oni idą do kina", spanish: "Ellos van al cine" },
+    { polish: "Mój tata pracuje", spanish: "Mi papá trabaja" },
+    { polish: "Czy to twoja rodzina?", spanish: "¿Es esta tu familia?" },
+    { polish: "Ona śpiewa pięknie", spanish: "Ella canta hermosamente" },
+    { polish: "Czy to jest twoje auto?", spanish: "¿Este es tu coche?" },
+    { polish: "Mamy dużo pracy", spanish: "Tenemos mucho trabajo" },
+    { polish: "Oni mieszkają w dużym domu", spanish: "Ellos viven en una casa grande" },
+    { polish: "Czy jesteś zmęczony?", spanish: "¿Estás cansado?" },
+    { polish: "Ona jest studentką", spanish: "Ella es estudiante" },
+    { polish: "To jest bardzo drogie", spanish: "Esto es muy caro" },
+    { polish: "Lubię plażę", spanish: "Me gusta la playa" },
+    { polish: "Oni mają psa", spanish: "Ellos tienen un perro" },
+    { polish: "Mój brat gra w piłkę nożną", spanish: "Mi hermano juega al fútbol" },
+    { polish: "Ona jest piękna", spanish: "Ella es hermosa" },
+    { polish: "Czy oni lubią podróżować?", spanish: "¿Les gusta viajar?" },
+    { polish: "Ona jest w szpitalu", spanish: "Ella está en el hospital" },
+    { polish: "Mam samochód", spanish: "Tengo un coche" },
+    { polish: "Czy ona jest w pracy?", spanish: "¿Ella está en el trabajo?" },
+    { polish: "Oni są szczęśliwi", spanish: "Ellos son felices" },
+    { polish: "Czy to jest twoje dziecko?", spanish: "¿Este es tu hijo?" },
+    { polish: "Ona jest w sklepie", spanish: "Ella está en la tienda" },
+    { polish: "Lubisz gotować?", spanish: "¿Te gusta cocinar?" },
+    { polish: "Oni są w parku", spanish: "Ellos están en el parque" },
+    { polish: "Mam dużo przyjaciół", spanish: "Tengo muchos amigos" },
+    { polish: "Ona uczy się języka hiszpańskiego", spanish: "Ella está aprendiendo español" },
+    { polish: "Oni są w restauracji", spanish: "Ellos están en el restaurante" },
+    { polish: "Czy masz rodzeństwo?", spanish: "¿Tienes hermanos?" },
+    { polish: "Ona jest w kinie", spanish: "Ella está en el cine" },
+    { polish: "Lubisz jeździć na rowerze?", spanish: "¿Te gusta andar en bicicleta?" },
+    { polish: "Oni są w szkole", spanish: "Ellos están en la escuela" },
+    { polish: "To jest bardzo ciche", spanish: "Esto es muy tranquilo" },
+    { polish: "Lubię podróżować", spanish: "Me gusta viajar" },
+    { polish: "Ona jest w domu", spanish: "Ella está en casa" },
+    { polish: "Oni chodzą na spacer", spanish: "Ellos dan un paseo" },
+    { polish: "Czy to jest twój pies?", spanish: "¿Este es tu perro?" },
+    { polish: "Ona jest w parku", spanish: "Ella está en el parque" },
+    { polish: "Oni mieszkają w dużym mieście", spanish: "Ellos viven en una ciudad grande" },
+    { polish: "Lubię góry", spanish: "Me gustan las montañas" },
+            ]
+        };
+
+        let currentCategory = "przedmioty"; // Domyślna kategoria
+        let currentWordIndex;
+        let correctAnswers = 0;
+        let totalAttempts = 0;
+        let incorrectAttempts = 0;
+        let usedWordIndexes = [];
+        let results = [];
+
+        function getRandomWordIndex() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * categories[currentCategory].length);
+            } while (usedWordIndexes.includes(newIndex));
+            usedWordIndexes.push(newIndex);
+            return newIndex;
+        }
+
+        function selectCategory() {
+            currentCategory = document.getElementById("categorySelect").value;
+            resetGame();
+        }
+
+        function displayWord() {
+            currentWordIndex = getRandomWordIndex();
+            const wordElement = document.getElementById("word");
+            wordElement.textContent = categories[currentCategory][currentWordIndex].polish;
+            wordElement.classList.add("word-background");
+            document.getElementById("message").textContent = "";
+            document.getElementById("translation").value = "";
+        }
+
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                checkTranslation();
+            }
+        }
+
+        function checkTranslation() {
+            const translation = document.getElementById("translation").value.trim().toLowerCase();
+            totalAttempts++;
+            if (translation === categories[currentCategory][currentWordIndex].spanish.toLowerCase()) {
+                correctAnswers++;
+                results.push({ index: currentWordIndex, attempts: totalAttempts });
+                if (usedWordIndexes.length < categories[currentCategory].length) {
+                    displayWord();
+                } else {
+                    showResults();
+                }
+            } else {
+                incorrectAttempts++;
+                document.getElementById("message").textContent = `Błędne tłumaczenie. Poprawne to: ${categories[currentCategory][currentWordIndex].spanish}`;
+            }
+        }
+
+        function showResults() {
+            const resultsModal = document.getElementById("results-modal");
+            resultsModal.style.display = "flex";
+            const resultsMessage = document.getElementById("results-message");
+            resultsMessage.textContent = `Dziękujemy za grę!\nLiczba poprawnych odpowiedzi: ${correctAnswers}\nLiczba błędnych odpowiedzi: ${incorrectAttempts}`;
+        }
+
+        function resetGame() {
+            correctAnswers = 0;
+            totalAttempts = 0;
+            incorrectAttempts = 0;
+            usedWordIndexes = [];
+            results = [];
+            document.getElementById("results-modal").style.display = "none";
+            displayWord();
+        }
+
+        function addSpecialCharacter(character) {
+            const translationInput = document.getElementById("translation");
+            translationInput.value += character;
+        }
+
+        // Inicjalizacja gry
+        resetGame();
+    </script>
+</body>
+</html>
